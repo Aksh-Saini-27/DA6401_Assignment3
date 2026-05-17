@@ -1,6 +1,7 @@
 import torch
 from datasets import load_dataset
 import spacy
+import spacy.cli
 
 class Multi30kDataset:
     def __init__(self, split='train'):
@@ -10,9 +11,21 @@ class Multi30kDataset:
         self.split = split
         self.dataset = load_dataset("bentrevett/multi30k", split=split)
         
-        # Load tokenizers
-        self.spacy_de = spacy.load("de_core_news_sm")
-        self.spacy_en = spacy.load("en_core_web_sm")
+        # --- NEW: Safely load or download spacy models ---
+        try:
+            self.spacy_de = spacy.load("de_core_news_sm")
+        except OSError:
+            print("Downloading German spacy model...")
+            spacy.cli.download("de_core_news_sm")
+            self.spacy_de = spacy.load("de_core_news_sm")
+            
+        try:
+            self.spacy_en = spacy.load("en_core_web_sm")
+        except OSError:
+            print("Downloading English spacy model...")
+            spacy.cli.download("en_core_web_sm")
+            self.spacy_en = spacy.load("en_core_web_sm")
+        # -------------------------------------------------
         
         # Special tokens configuration
         self.special_tokens = ['<unk>', '<pad>', '<sos>', '<eos>']
